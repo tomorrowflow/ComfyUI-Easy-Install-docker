@@ -1,0 +1,43 @@
+services:
+  comfyui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: comfyui:easy-install
+    container_name: comfyui
+    ports:
+      - "8188:8188"
+
+    volumes:
+      # Persist the entire Easy Install directory to keep updates
+      - ./data/ComfyUI-Easy-Install:/app/ComfyUI-Easy-Install:rw
+
+      # Optional: extra model paths configuration
+      - ./config/extra_model_paths.yaml:/app/ComfyUI-Easy-Install/ComfyUI/extra_model_paths.yaml:ro
+
+    # Nvidia GPU Configuration
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+      # Optional: Adjust these for your GPU memory
+      # - PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
+
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
+
+    # Health check to ensure ComfyUI is running
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8188"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

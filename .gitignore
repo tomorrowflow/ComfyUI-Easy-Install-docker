@@ -1,0 +1,43 @@
+# Data directory - contains large models and generated images
+data/ComfyUI-Easy-Install/
+
+# Local configuration - user-specific paths
+config/extra_model_paths.yaml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Docker
+.docker/
+
+# Temporary files
+*.tmp
+temp/
+
+# Keep example files
+!config/extra_model_paths.yaml.example
+!data/.gitkeep

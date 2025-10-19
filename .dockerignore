@@ -1,0 +1,26 @@
+# Exclude data directory from build context
+data/
+config/
+
+# Git
+.git/
+.gitignore
+.github/
+
+# Documentation
+README.md
+*.md
+docs/
+
+# Scripts not needed in image
+docker-compose.yml
+setup.sh
+update.sh
+
+# IDE
+.vscode/
+.idea/
+
+# Temp files
+*.log
+*.tmp
