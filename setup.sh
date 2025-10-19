@@ -1,13 +1,12 @@
 #!/bin/bash
 
-# ComfyUI Easy Install Docker Setup Script
+# ComfyUI Docker Setup Script
 # This script initializes the directory structure for ComfyUI Docker
 
 set -e
 
 echo "==================================="
 echo "ComfyUI Docker Setup Script"
-echo "Using Easy Install Repository"
 echo "==================================="
 echo ""
 
@@ -18,8 +17,11 @@ cd "$SCRIPT_DIR"
 # Create directory structure
 echo "Creating directory structure..."
 
-# Main data directory - will hold the entire Easy Install repo
-mkdir -p data
+# Main data directories
+mkdir -p data/{models,output,input,custom_nodes,user/default/workflows}
+
+# Model subdirectories
+mkdir -p data/models/{checkpoints,vae,loras,embeddings,controlnet,clip,clip_vision,upscale_models,diffusion_models,style_models,unet}
 
 # Config directory
 mkdir -p config
@@ -38,7 +40,7 @@ if [ ! -f config/extra_model_paths.yaml.example ]; then
 # Example: Use models from another directory
 # my_models:
 #   base_path: /path/to/your/model/directory
-#
+#   
 #   checkpoints: models/checkpoints/
 #   vae: models/vae/
 #   loras: models/loras/
@@ -52,7 +54,7 @@ if [ ! -f config/extra_model_paths.yaml.example ]; then
 # Example: A1111/Stable Diffusion WebUI compatibility
 # webui:
 #   base_path: /path/to/stable-diffusion-webui/
-#
+#   
 #   checkpoints: models/Stable-diffusion
 #   vae: models/VAE
 #   loras: |
@@ -67,59 +69,54 @@ if [ ! -f config/extra_model_paths.yaml.example ]; then
 #     models/SwinIR
 EOF
     echo "✓ Example extra_model_paths.yaml.example created in config/"
+    echo "  Edit this file if you want to use models from external directories"
 else
     echo "✓ extra_model_paths.yaml.example already exists"
 fi
 echo ""
 
-# Create .gitkeep in data directory
-touch data/.gitkeep
-
 # Create README for data directory
-cat > data/README.md << 'EOF'
-# ComfyUI Easy Install Data Directory
+if [ ! -f data/README.md ]; then
+    cat > data/README.md << 'EOF'
+# ComfyUI Data Directory
 
-This directory will contain the entire ComfyUI-Easy-Install repository after the first build/run.
+This directory contains all persistent data for your ComfyUI installation.
 
-## Structure (after first run)
+## Directory Structure
 
-```
-ComfyUI-Easy-Install/
-├── ComfyUI/                  # Main ComfyUI installation
-│   ├── models/              # All AI models
-│   │   ├── checkpoints/
-│   │   ├── vae/
-│   │   ├── loras/
-│   │   ├── controlnet/
-│   │   └── ...
-│   ├── output/              # Generated images
-│   ├── input/               # Input files
-│   ├── custom_nodes/        # All custom nodes from Easy Install
-│   └── user/                # User settings and workflows
-├── update.sh                # Update script (if provided)
-└── ... (other Easy Install files)
-```
+- **models/**: All AI models organized by type
+  - checkpoints/: Stable Diffusion checkpoints
+  - vae/: VAE models
+  - loras/: LoRA models
+  - controlnet/: ControlNet models
+  - etc.
 
-## Benefits
+- **output/**: Generated images and videos
+- **input/**: Input files for processing
+- **custom_nodes/**: Custom node extensions (mounted from container)
+- **user/**: User settings and workflows
+  - default/workflows/: Your saved workflows
 
-1. **Easy Updates**: Run update scripts from Easy Install
-2. **Maintained Nodes**: All nodes managed by Easy Install team
-3. **No Manual Maintenance**: Let Easy Install handle compatibility
+## Getting Models
 
-## Accessing Files
+You can download models from:
+- Hugging Face: https://huggingface.co/
+- CivitAI: https://civitai.com/
+- ComfyUI Manager (available in the web interface)
 
-- **Models**: `data/ComfyUI-Easy-Install/ComfyUI/models/`
-- **Output**: `data/ComfyUI-Easy-Install/ComfyUI/output/`
-- **Workflows**: `data/ComfyUI-Easy-Install/ComfyUI/user/default/workflows/`
-- **Custom Nodes**: `data/ComfyUI-Easy-Install/ComfyUI/custom_nodes/`
+Place models in the appropriate subdirectory under models/.
+
+## Sharing Models
+
+If you have models in another location (e.g., Stable Diffusion WebUI), 
+copy config/extra_model_paths.yaml.example to config/extra_model_paths.yaml
+and edit it to point to those directories.
 EOF
+fi
 
 echo "==================================="
 echo "Setup Complete!"
 echo "==================================="
-echo ""
-echo "This setup uses the Easy Install repository's maintained scripts."
-echo "All custom nodes and updates are handled by the Easy Install team!"
 echo ""
 echo "Next steps:"
 echo ""
@@ -132,15 +129,18 @@ echo ""
 echo "3. Check logs:"
 echo "   docker-compose logs -f"
 echo ""
-echo "4. Access ComfyUI:"
+echo "4. Access ComfyUI (wait ~30 seconds after start):"
 echo "   http://localhost:8188"
 echo ""
 echo "5. Download models:"
-echo "   Use ComfyUI Manager in the web interface"
+echo "   - Use ComfyUI Manager in the web interface"
+echo "   - Or manually place models in data/models/"
 echo ""
-echo "To update ComfyUI and all nodes:"
+echo "To update ComfyUI and nodes:"
 echo "   ./update.sh"
 echo ""
 echo "To stop ComfyUI:"
 echo "   docker-compose down"
+echo ""
+echo "Optional: Edit config/extra_model_paths.yaml to use models from other locations"
 echo ""
