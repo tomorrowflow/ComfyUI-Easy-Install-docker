@@ -9,23 +9,19 @@ services:
       - "8188:8188"
     
     volumes:
-      # Persist models directory structure
-      - ./data/models:/app/ComfyUI/models:rw
+      # Persist the entire Easy Install directory for easy updates
+      - ./data/ComfyUI-Easy-Install:/app/ComfyUI-Easy-Install:rw
       
-      # Persist output images
-      - ./data/output:/app/ComfyUI/output:rw
-      
-      # Persist input files
-      - ./data/input:/app/ComfyUI/input:rw
-      
-      # Persist custom nodes (for updates via ComfyUI Manager)
-      - ./data/custom_nodes:/app/ComfyUI/custom_nodes:rw
-      
-      # Persist user settings and workflows
-      - ./data/user:/app/ComfyUI/user:rw
+      # Alternative: Mount specific directories if you prefer granular control
+      # Uncomment these and comment out the above if preferred:
+      # - ./data/models:/app/ComfyUI-Easy-Install/ComfyUI/models:rw
+      # - ./data/output:/app/ComfyUI-Easy-Install/ComfyUI/output:rw
+      # - ./data/input:/app/ComfyUI-Easy-Install/ComfyUI/input:rw
+      # - ./data/custom_nodes:/app/ComfyUI-Easy-Install/ComfyUI/custom_nodes:rw
+      # - ./data/user:/app/ComfyUI-Easy-Install/ComfyUI/user:rw
       
       # Optional: extra model paths configuration
-      - ./config/extra_model_paths.yaml:/app/ComfyUI/extra_model_paths.yaml:ro
+      - ./config/extra_model_paths.yaml:/app/ComfyUI-Easy-Install/ComfyUI/extra_model_paths.yaml:ro
     
     # Nvidia GPU Configuration
     deploy:

@@ -26,89 +26,60 @@ RUN apt-get update && apt-get install -y \
 # Create working directory
 WORKDIR /app
 
-# Install PyTorch with CUDA support first (CUDA 12.1 compatible)
+# Install PyTorch with CUDA support FIRST (required by many custom nodes)
 RUN pip3 install --no-cache-dir \
-    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
 
-# Clone ComfyUI directly
-RUN echo "Installing ComfyUI..." && \
-    git clone https://github.com/comfyanonymous/ComfyUI.git /app/ComfyUI && \
-    cd /app/ComfyUI && \
-    pip3 install --no-cache-dir -r requirements.txt
-
-WORKDIR /app/ComfyUI
-
-# Install ComfyUI Manager
-RUN echo "Installing ComfyUI Manager..." && \
-    git clone https://github.com/ltdrdata/ComfyUI-Manager.git custom_nodes/ComfyUI-Manager
-
-# Now clone Easy Install repo to get the custom nodes list
-WORKDIR /tmp
-RUN echo "Cloning Easy Install for custom nodes..." && \
+# Clone the Easy Install repository
+RUN echo "Cloning ComfyUI Easy Install..." && \
     git clone --single-branch --branch MAC-Linux \
-    https://github.com/Tavris1/ComfyUI-Easy-Install.git
+    https://github.com/Tavris1/ComfyUI-Easy-Install.git /app/ComfyUI-Easy-Install
 
-# Install all custom nodes from Easy Install
-WORKDIR /app/ComfyUI/custom_nodes
+WORKDIR /app/ComfyUI-Easy-Install
 
-# WAS Node Suite
-RUN echo "Installing WAS Node Suite..." && \
-    git clone https://github.com/WASasquatch/was-node-suite-comfyui.git && \
-    pip3 install --no-cache-dir -r was-node-suite-comfyui/requirements.txt 2>/dev/null || true
+# Make the installation script executable
+RUN chmod +x ComfyUI-Easy-Install-Linux.sh || \
+    chmod +x *.sh
 
-# Easy Use
-RUN echo "Installing Easy-Use..." && \
-    git clone https://github.com/yolain/ComfyUI-Easy-Use.git && \
-    pip3 install --no-cache-dir -r ComfyUI-Easy-Use/requirements.txt 2>/dev/null || true
+# Run the Easy Install script
+# The script should handle everything: ComfyUI clone, custom nodes, dependencies
+RUN echo "Running Easy Install script..." && \
+    bash -c './ComfyUI-Easy-Install-Linux.sh || echo "Script completed with warnings"'
 
-# ControlNet Auxiliary
-RUN echo "Installing ControlNet Aux..." && \
-    git clone https://github.com/Fannovel16/comfyui_controlnet_aux.git && \
-    pip3 install --no-cache-dir -r comfyui_controlnet_aux/requirements.txt 2>/dev/null || true
+# Verify ComfyUI was installed
+RUN if [ ! -f "ComfyUI/main.py" ]; then \
+        echo "ERROR: ComfyUI not installed by Easy Install script!"; \
+        echo "Falling back to manual installation..."; \
+        git clone https://github.com/comfyanonymous/ComfyUI.git; \
+        cd ComfyUI && pip3 install -r requirements.txt; \
+    else \
+        echo "SUCCESS: ComfyUI installed by Easy Install script"; \
+    fi
 
-# Comfyroll Studio
-RUN echo "Installing Comfyroll Studio..." && \
-    git clone https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git && \
-    pip3 install --no-cache-dir -r ComfyUI_Comfyroll_CustomNodes/requirements.txt 2>/dev/null || true
+# Switch to ComfyUI directory
+WORKDIR /app/ComfyUI-Easy-Install/ComfyUI
 
-# Crystools
-RUN echo "Installing Crystools..." && \
-    git clone https://github.com/crystian/ComfyUI-Crystools.git && \
-    pip3 install --no-cache-dir -r ComfyUI-Crystools/requirements.txt 2>/dev/null || true
+# Ensure requirements are installed (in case script skipped them)
+RUN pip3 install --no-cache-dir -r requirements.txt || true
 
-# rgthree
-RUN echo "Installing rgthree..." && \
-    git clone https://github.com/rgthree/rgthree-comfy.git
+# Ensure ComfyUI Manager is installed
+RUN if [ ! -d "custom_nodes/ComfyUI-Manager" ]; then \
+        echo "Installing ComfyUI-Manager..."; \
+        mkdir -p custom_nodes; \
+        git clone https://github.com/ltdrdata/ComfyUI-Manager.git custom_nodes/ComfyUI-Manager; \
+    fi
 
-# GGUF
-RUN echo "Installing GGUF..." && \
-    git clone https://github.com/city96/ComfyUI-GGUF.git && \
-    pip3 install --no-cache-dir -r ComfyUI-GGUF/requirements.txt 2>/dev/null || true
+# Install requirements for all custom nodes that were installed by Easy Install
+RUN echo "Installing custom node dependencies..." && \
+    for dir in custom_nodes/*/; do \
+        if [ -f "${dir}requirements.txt" ]; then \
+            echo "  Installing requirements for ${dir}"; \
+            pip3 install --no-cache-dir -r "${dir}requirements.txt" 2>/dev/null || \
+            echo "  Warning: Some dependencies for ${dir} failed to install (non-critical)"; \
+        fi; \
+    done
 
-# Florence2
-RUN echo "Installing Florence2..." && \
-    git clone https://github.com/kijai/ComfyUI-Florence2.git && \
-    pip3 install --no-cache-dir -r ComfyUI-Florence2/requirements.txt 2>/dev/null || true
-
-# Video Helper Suite
-RUN echo "Installing VideoHelperSuite..." && \
-    git clone https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite.git && \
-    pip3 install --no-cache-dir -r ComfyUI-VideoHelperSuite/requirements.txt 2>/dev/null || true
-
-# KJNodes
-RUN echo "Installing KJNodes..." && \
-    git clone https://github.com/kijai/ComfyUI-KJNodes.git && \
-    pip3 install --no-cache-dir -r ComfyUI-KJNodes/requirements.txt 2>/dev/null || true
-
-# Additional popular nodes (add more as needed)
-RUN echo "Installing additional nodes..." && \
-    git clone https://github.com/ltdrdata/ComfyUI-Impact-Pack.git 2>/dev/null || true && \
-    git clone https://github.com/Suzie1/ComfyUI_Comfyroll_CustomNodes.git 2>/dev/null || true
-
-# Go back to ComfyUI directory
-WORKDIR /app/ComfyUI
-
-# Create necessary model directories
+# Create necessary model directories if they don't exist
 RUN mkdir -p \
     models/checkpoints \
     models/vae \
@@ -125,17 +96,18 @@ RUN mkdir -p \
     input \
     user/default/workflows
 
-# Install additional common dependencies
+# Install some common additional dependencies that nodes might need
 RUN pip3 install --no-cache-dir \
     opencv-python \
     scikit-image \
     imageio \
     imageio-ffmpeg \
     scipy \
-    numba
+    numba \
+    2>/dev/null || echo "Some optional dependencies failed (non-critical)"
 
 # Expose port
 EXPOSE 8188
 
-# Start ComfyUI
+# Start ComfyUI from the Easy Install directory
 CMD ["python3", "main.py", "--listen", "0.0.0.0", "--port", "8188"]
