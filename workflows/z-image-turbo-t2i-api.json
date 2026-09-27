@@ -1,0 +1,140 @@
+{
+  "1": {
+    "class_type": "UNETLoader",
+    "_meta": {
+      "title": "Load Diffusion Model"
+    },
+    "inputs": {
+      "unet_name": "z_image_turbo_bf16.safetensors",
+      "weight_dtype": "default"
+    }
+  },
+  "2": {
+    "class_type": "CLIPLoader",
+    "_meta": {
+      "title": "Load Text Encoder"
+    },
+    "inputs": {
+      "clip_name": "qwen_3_4b.safetensors",
+      "type": "lumina2",
+      "device": "default"
+    }
+  },
+  "3": {
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    },
+    "inputs": {
+      "seed": 42,
+      "steps": 8,
+      "cfg": 1.0,
+      "sampler_name": "res_multistep",
+      "scheduler": "simple",
+      "denoise": 1.0,
+      "model": [
+        "10",
+        0
+      ],
+      "positive": [
+        "6",
+        0
+      ],
+      "negative": [
+        "7",
+        0
+      ],
+      "latent_image": [
+        "5",
+        0
+      ]
+    }
+  },
+  "4": {
+    "class_type": "VAELoader",
+    "_meta": {
+      "title": "Load VAE"
+    },
+    "inputs": {
+      "vae_name": "ae.safetensors"
+    }
+  },
+  "5": {
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "Image Size"
+    },
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    }
+  },
+  "6": {
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "Prompt"
+    },
+    "inputs": {
+      "text": "A cozy mountain cabin at dusk, warm light glowing from the windows, fresh snow on pine trees, soft mist in the valley, cinematic photography",
+      "clip": [
+        "2",
+        0
+      ]
+    }
+  },
+  "7": {
+    "class_type": "ConditioningZeroOut",
+    "_meta": {
+      "title": "Empty Negative"
+    },
+    "inputs": {
+      "conditioning": [
+        "6",
+        0
+      ]
+    }
+  },
+  "8": {
+    "class_type": "VAEDecode",
+    "_meta": {
+      "title": "VAE Decode"
+    },
+    "inputs": {
+      "samples": [
+        "3",
+        0
+      ],
+      "vae": [
+        "4",
+        0
+      ]
+    }
+  },
+  "9": {
+    "class_type": "SaveImage",
+    "_meta": {
+      "title": "Save Image"
+    },
+    "inputs": {
+      "filename_prefix": "z-image-turbo",
+      "images": [
+        "8",
+        0
+      ]
+    }
+  },
+  "10": {
+    "class_type": "ModelSamplingAuraFlow",
+    "_meta": {
+      "title": "Model Sampling Shift"
+    },
+    "inputs": {
+      "shift": 3.0,
+      "model": [
+        "1",
+        0
+      ]
+    }
+  }
+}
