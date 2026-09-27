@@ -1,4 +1,4 @@
-# Use CUDA 12.4 base image
+# CUDA 12.4 base image (PyTorch wheels bundle their own CUDA 12.8 runtime)
 FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04
 
 # Set environment variables
@@ -26,9 +26,9 @@ RUN apt-get update && apt-get install -y \
 # Create working directory
 WORKDIR /app
 
-# Install PyTorch with CUDA 12.4 support first
+# Install PyTorch with CUDA 12.8 wheels (cu124 tops out at torch 2.6, too old for comfy-kitchen)
 RUN pip3 install --no-cache-dir \
-    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
 
 # Install pygit2 for ComfyUI Manager git operations (missing from original!)
 RUN pip3 install --no-cache-dir pygit2

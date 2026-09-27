@@ -10,11 +10,11 @@ echo "ComfyUI Update Script"
 echo "==================================="
 echo ""
 
-# Check if docker-compose is running
-if ! docker-compose ps | grep -q "comfyui.*Up"; then
+# Check if docker compose is running
+if ! docker compose ps | grep -q "comfyui.*Up"; then
     echo "⚠️  ComfyUI container is not running"
     echo "Starting container..."
-    docker-compose up -d
+    docker compose up -d
     sleep 5
 fi
 
@@ -23,15 +23,20 @@ echo ""
 
 # Update ComfyUI core
 echo "→ Updating ComfyUI core..."
-docker-compose exec comfyui bash -c "cd /app/ComfyUI && git pull"
+docker compose exec comfyui bash -c "cd /app/ComfyUI && git pull"
+
+# Install core requirements immediately after git pull — new ComfyUI versions
+# can add required packages (e.g. comfy-aimdo) that must exist before restart.
+echo "→ Installing ComfyUI core requirements..."
+docker compose exec comfyui bash -c "cd /app/ComfyUI && pip3 install --no-cache-dir -r requirements.txt"
 
 # Update ComfyUI Manager
 echo "→ Updating ComfyUI Manager..."
-docker-compose exec comfyui bash -c "cd /app/ComfyUI/custom_nodes/ComfyUI-Manager && git pull" || echo "  ⚠️  Failed to update Manager (may not exist yet)"
+docker compose exec comfyui bash -c "cd /app/ComfyUI/custom_nodes/ComfyUI-Manager && git pull" || echo "  ⚠️  Failed to update Manager (may not exist yet)"
 
 # Update all custom nodes
 echo "→ Updating custom nodes..."
-docker-compose exec comfyui bash -c '
+docker compose exec comfyui bash -c '
     cd /app/ComfyUI/custom_nodes
     for dir in */; do
         if [ -d "${dir}.git" ]; then
@@ -42,8 +47,8 @@ docker-compose exec comfyui bash -c '
 '
 
 # Reinstall requirements for updated nodes
-echo "→ Updating dependencies..."
-docker-compose exec comfyui bash -c '
+echo "→ Updating custom node dependencies..."
+docker compose exec comfyui bash -c '
     cd /app/ComfyUI/custom_nodes
     for dir in */; do
         if [ -f "${dir}requirements.txt" ]; then
@@ -53,9 +58,19 @@ docker-compose exec comfyui bash -c '
     done
 '
 
-# Update core requirements
-echo "→ Updating ComfyUI core dependencies..."
-docker-compose exec comfyui bash -c "cd /app/ComfyUI && pip3 install --no-cache-dir -r requirements.txt"
+# Re-apply core requirements last — custom node requirements can downgrade
+# packages ComfyUI core depends on (e.g. aiortc pulling av below 17).
+echo "→ Re-applying ComfyUI core requirements..."
+docker compose exec comfyui bash -c "cd /app/ComfyUI && pip3 install --no-cache-dir -r requirements.txt"
+
+# Commit the updated container state so pip installs survive docker compose
+# recreates (e.g. --force-recreate or image rebuilds).
+echo "→ Persisting changes to image..."
+CONTAINER_ID=$(docker compose ps -q comfyui)
+docker commit \
+    --change 'CMD ["python3", "main.py", "--listen", "0.0.0.0", "--port", "8188"]' \
+    "$CONTAINER_ID" comfyui:easy-install
+echo "  ✓ Image updated"
 
 echo ""
 echo "==================================="
@@ -63,7 +78,7 @@ echo "Update Complete!"
 echo "==================================="
 echo ""
 echo "Restart ComfyUI for changes to take effect:"
-echo "   docker-compose restart"
+echo "   docker compose restart"
 echo ""
 
 # Ask if user wants to restart
@@ -71,7 +86,7 @@ read -p "Restart ComfyUI now? (y/n) " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     echo "Restarting ComfyUI..."
-    docker-compose restart
+    docker compose restart
     echo "✓ ComfyUI restarted successfully"
     echo "Access it at: http://localhost:8188"
 fi
