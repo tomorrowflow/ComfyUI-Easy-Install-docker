@@ -257,6 +257,18 @@ Add to `docker-compose.yml` under `environment:`:
 ```
 Then restart: `docker-compose restart`
 
+#### Sharing the GPU with Other Services
+By default ComfyUI starts with `--disable-smart-memory`, which moves models to
+system RAM after each job instead of keeping them in VRAM. This lets other GPU
+services (Ollama, vLLM, ...) use the memory while ComfyUI is idle. To change
+the extra launch flags, set `COMFYUI_EXTRA_ARGS` in a `.env` file next to
+`docker-compose.yml`:
+```bash
+COMFYUI_EXTRA_ARGS=           # empty: keep models in VRAM (faster reruns)
+COMFYUI_EXTRA_ARGS=--disable-smart-memory --lowvram
+```
+Then recreate: `docker-compose up -d`
+
 #### Port Already in Use
 Edit `docker-compose.yml`:
 ```yaml
