@@ -30,9 +30,9 @@ docker compose exec comfyui bash -c "cd /app/ComfyUI && git pull"
 echo "→ Installing ComfyUI core requirements..."
 docker compose exec comfyui bash -c "cd /app/ComfyUI && pip3 install --no-cache-dir -r requirements.txt"
 
-# Update ComfyUI Manager
+# ComfyUI-Manager v4 is a pip package pinned by ComfyUI core
 echo "→ Updating ComfyUI Manager..."
-docker compose exec comfyui bash -c "cd /app/ComfyUI/custom_nodes/ComfyUI-Manager && git pull" || echo "  ⚠️  Failed to update Manager (may not exist yet)"
+docker compose exec comfyui bash -c "cd /app/ComfyUI && pip3 install --no-cache-dir -r manager_requirements.txt"
 
 # Update all custom nodes
 echo "→ Updating custom nodes..."
@@ -68,7 +68,7 @@ docker compose exec comfyui bash -c "cd /app/ComfyUI && pip3 install --no-cache-
 echo "→ Persisting changes to image..."
 CONTAINER_ID=$(docker compose ps -q comfyui)
 docker commit \
-    --change 'CMD ["python3", "main.py", "--listen", "0.0.0.0", "--port", "8188"]' \
+    --change 'CMD ["python3", "main.py", "--listen", "0.0.0.0", "--port", "8188", "--enable-manager"]' \
     "$CONTAINER_ID" comfyui:easy-install
 echo "  ✓ Image updated"
 

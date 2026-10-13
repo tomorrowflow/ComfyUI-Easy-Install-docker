@@ -182,7 +182,7 @@ my_models:
 
 All Easy Install nodes are pre-installed and ready to use. Popular nodes include:
 
-- **ComfyUI-Manager**: Model and node management
+- **ComfyUI-Manager v4**: Model and node management (pip package `comfyui_manager`, enabled with `--enable-manager`)
 - **ControlNet**: Image-to-image control
 - **IPAdapter**: Reference image conditioning
 - **ReActor**: Face swapping
@@ -227,7 +227,7 @@ This script:
 docker-compose exec comfyui bash -c "cd /app/ComfyUI-Easy-Install/ComfyUI && git pull"
 
 # Update ComfyUI Manager
-docker-compose exec comfyui bash -c "cd /app/ComfyUI-Easy-Install/ComfyUI/custom_nodes/ComfyUI-Manager && git pull"
+docker-compose exec comfyui bash -c "cd /app/ComfyUI && pip3 install -r manager_requirements.txt"
 
 # Restart to apply changes
 docker-compose restart

@@ -39,8 +39,8 @@ RUN echo "Installing ComfyUI..." && \
 
 WORKDIR /app/ComfyUI
 
-# Install ComfyUI requirements
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Install ComfyUI requirements, plus ComfyUI-Manager v4 (pip package, enabled with --enable-manager)
+RUN pip3 install --no-cache-dir -r requirements.txt -r manager_requirements.txt
 
 # Create custom_nodes directory
 RUN mkdir -p custom_nodes
@@ -48,10 +48,6 @@ RUN mkdir -p custom_nodes
 WORKDIR /app/ComfyUI/custom_nodes
 
 # Install ALL custom nodes from Easy Install list (in correct order)
-# Core Management
-RUN echo "Installing ComfyUI-Manager..." && \
-    git clone https://github.com/ltdrdata/ComfyUI-Manager.git
-
 # Essential Node Suites
 RUN echo "Installing WAS Node Suite..." && \
     git clone https://github.com/WASasquatch/was-node-suite-comfyui.git && \
@@ -237,4 +233,4 @@ RUN pip3 install --no-cache-dir \
 EXPOSE 8188
 
 # Start ComfyUI
-CMD ["python3", "main.py", "--listen", "0.0.0.0", "--port", "8188"]
+CMD ["python3", "main.py", "--listen", "0.0.0.0", "--port", "8188", "--enable-manager"]

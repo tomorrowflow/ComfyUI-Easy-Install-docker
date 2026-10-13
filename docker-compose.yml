@@ -8,7 +8,7 @@ services:
     # --disable-smart-memory offloads models to system RAM after each job so
     # VRAM is freed for other GPU services sharing this host. Override with
     # COMFYUI_EXTRA_ARGS in .env (set it empty to keep models in VRAM).
-    command: python3 main.py --listen 0.0.0.0 --port 8188 ${COMFYUI_EXTRA_ARGS---disable-smart-memory}
+    command: python3 main.py --listen 0.0.0.0 --port 8188 --enable-manager ${COMFYUI_EXTRA_ARGS---disable-smart-memory}
     ports:
       - "8188:8188"
     
