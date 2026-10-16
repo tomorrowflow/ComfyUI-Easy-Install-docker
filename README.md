@@ -215,7 +215,7 @@ All Easy Install nodes are pre-installed and ready to use. Popular nodes include
 ./update.sh
 ```
 This script:
-- Updates ComfyUI core
+- Updates ComfyUI core to the newest release tag (run `COMFYUI_CHANNEL=nightly ./update.sh` to follow `master` instead)
 - Updates ComfyUI Manager
 - Updates all custom nodes
 - Reinstalls dependencies
@@ -223,8 +223,8 @@ This script:
 
 ### Manual Updates
 ```bash
-# Update ComfyUI core
-docker-compose exec comfyui bash -c "cd /app/ComfyUI-Easy-Install/ComfyUI && git pull"
+# Update ComfyUI core to a release tag (tags live on release/* branches, not master)
+docker-compose exec comfyui bash -c "cd /app/ComfyUI && git fetch --tags && git checkout v0.41.2"
 
 # Update ComfyUI Manager
 docker-compose exec comfyui bash -c "cd /app/ComfyUI && pip3 install -r manager_requirements.txt"

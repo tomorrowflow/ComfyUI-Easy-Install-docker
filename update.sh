@@ -21,9 +21,24 @@ fi
 echo "Updating ComfyUI and custom nodes..."
 echo ""
 
-# Update ComfyUI core
-echo "→ Updating ComfyUI core..."
-docker compose exec comfyui bash -c "cd /app/ComfyUI && git pull"
+# Update ComfyUI core. Release tags live on release/* branches, not master,
+# so stable checks out the newest vX.Y.Z tag. Set COMFYUI_CHANNEL=nightly to
+# follow master instead.
+COMFYUI_CHANNEL=${COMFYUI_CHANNEL:-stable}
+echo "→ Updating ComfyUI core ($COMFYUI_CHANNEL)..."
+docker compose exec -e COMFYUI_CHANNEL="$COMFYUI_CHANNEL" comfyui bash -c '
+    set -e
+    cd /app/ComfyUI
+    git fetch --tags --force origin
+    if [ "$COMFYUI_CHANNEL" = nightly ]; then
+        git checkout master
+        git pull --ff-only
+    else
+        tag=$(git tag --list "v[0-9]*" --sort=-v:refname | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$" | head -1)
+        git checkout "$tag"
+    fi
+    echo "  ComfyUI $(git describe --tags)"
+'
 
 # Install core requirements immediately after git pull — new ComfyUI versions
 # can add required packages (e.g. comfy-aimdo) that must exist before restart.
