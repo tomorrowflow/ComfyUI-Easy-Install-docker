@@ -8,9 +8,10 @@ services:
     # --disable-smart-memory offloads models to system RAM after each job.
     # --vram-headroom keeps 2 GB per card unused, and it counts VRAM held by
     # other processes, so ollama and the vLLM services sharing this host are
-    # not starved. Override both with COMFYUI_EXTRA_ARGS in .env (set it empty
-    # to keep models in VRAM).
-    command: python3 main.py --listen 0.0.0.0 --port 8188 --enable-manager ${COMFYUI_EXTRA_ARGS---disable-smart-memory --vram-headroom 2}
+    # not starved. --bf16-text-enc stores text encoder weights in bf16.
+    # Override all three with COMFYUI_EXTRA_ARGS in .env (set it empty to keep
+    # models in VRAM).
+    command: python3 main.py --listen 0.0.0.0 --port 8188 --enable-manager ${COMFYUI_EXTRA_ARGS---disable-smart-memory --vram-headroom 2 --bf16-text-enc}
     ports:
       - "8188:8188"
     
