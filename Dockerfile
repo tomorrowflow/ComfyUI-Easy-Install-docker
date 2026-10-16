@@ -191,6 +191,13 @@ RUN echo "Installing Impact Pack..." && \
     git clone https://github.com/ltdrdata/ComfyUI-Impact-Pack.git && \
     pip3 install --no-cache-dir -r ComfyUI-Impact-Pack/requirements.txt || true
 
+# MultiGPU loaders: Ming's 18.2 GiB text encoder cannot share one 24 GiB card
+# with the DiT, so its layers spill onto the second GPU and host RAM.
+# Upstream archived itself on 2026-09-30, so this pins its final commit.
+RUN echo "Installing MultiGPU..." && \
+    git clone https://github.com/pollockjj/ComfyUI-MultiGPU.git && \
+    git -C ComfyUI-MultiGPU checkout 37a73feda5804045e4f39d8c640905d62a2169d1
+
 # Go back to ComfyUI root directory
 WORKDIR /app/ComfyUI
 
