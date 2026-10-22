@@ -49,6 +49,12 @@ docker compose exec comfyui bash -c "cd /app/ComfyUI && pip3 install --no-cache-
 echo "→ Updating ComfyUI Manager..."
 docker compose exec comfyui bash -c "cd /app/ComfyUI && pip3 install --no-cache-dir -r manager_requirements.txt"
 
+# ComfyUI-Pixaroma: the Comfy Registry lags behind, so pull it straight from
+# git. The first run swaps the registry copy for a git clone.
+echo "→ Updating ComfyUI-Pixaroma..."
+CONTAINER="$(docker compose ps -q comfyui)" NO_RESTART=1 \
+    "$(dirname "$0")/update-pixorama.sh" || echo "  ⚠️  Failed to update ComfyUI-Pixaroma"
+
 # Update all custom nodes
 echo "→ Updating custom nodes..."
 docker compose exec comfyui bash -c '
