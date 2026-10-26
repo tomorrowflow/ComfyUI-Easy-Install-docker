@@ -41,6 +41,11 @@ RUN pip3 install --no-cache-dir --no-deps \
 # 2.x ships no Linux wheels and would need a CUDA devel build stage.
 RUN pip3 install --no-cache-dir --no-deps sageattention==1.0.6
 
+# nunchaku for ComfyUI-nunchaku. Built against the torch above; keep it in step
+# with the node version in data/custom_nodes/ComfyUI-nunchaku (both 1.2.1).
+RUN pip3 install --no-cache-dir \
+    "https://github.com/nunchaku-tech/nunchaku/releases/download/v1.2.1/nunchaku-1.2.1%2Bcu12.8torch2.11-cp310-cp310-linux_x86_64.whl"
+
 # Install pygit2 for ComfyUI Manager git operations (missing from original!)
 RUN pip3 install --no-cache-dir pygit2
 
