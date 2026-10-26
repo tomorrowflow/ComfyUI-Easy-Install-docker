@@ -21,14 +21,25 @@ RUN apt-get update && apt-get install -y \
     libxrender1 \
     libxext6 \
     libgomp1 \
+    sox \
     && rm -rf /var/lib/apt/lists/*
 
 # Create working directory
 WORKDIR /app
 
-# Install PyTorch with CUDA 12.8 wheels (cu124 tops out at torch 2.6, too old for comfy-kitchen)
+# Install PyTorch with CUDA 12.8 wheels (cu124 tops out at torch 2.6, too old for comfy-kitchen).
+# Pinned because the flash-attn wheel below is built against this exact torch.
 RUN pip3 install --no-cache-dir \
-    torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+    torch==2.11.0 torchvision==0.26.0 torchaudio==2.11.0 --index-url https://download.pytorch.org/whl/cu128
+
+# flash-attn for qwen3-tts and transformers' flash_attention_2. Upstream publishes no
+# torch 2.11 wheel and the runtime image has no nvcc, so use mjun0812's prebuilt one.
+RUN pip3 install --no-cache-dir --no-deps \
+    "https://github.com/mjun0812/flash-attention-prebuild-wheels/releases/download/v0.9.4/flash_attn-2.8.3%2Bcu128torch2.11-cp310-cp310-linux_x86_64.whl"
+
+# SageAttention for --use-sage-attention. 1.x is pure Triton, so it needs no nvcc;
+# 2.x ships no Linux wheels and would need a CUDA devel build stage.
+RUN pip3 install --no-cache-dir --no-deps sageattention==1.0.6
 
 # Install pygit2 for ComfyUI Manager git operations (missing from original!)
 RUN pip3 install --no-cache-dir pygit2
