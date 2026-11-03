@@ -135,9 +135,12 @@ RUN echo "Installing OmniGen..." && \
     git clone https://github.com/1038lab/ComfyUI-OmniGen.git && \
     pip3 install --no-cache-dir -r ComfyUI-OmniGen/requirements.txt || true
 
+# flet is transparent_background's GUI toolkit; without it every startup
+# logs "Failed to import flet".
 RUN echo "Installing Inspyrenet Rembg..." && \
     git clone https://github.com/john-mnz/ComfyUI-Inspyrenet-Rembg.git && \
-    pip3 install --no-cache-dir -r ComfyUI-Inspyrenet-Rembg/requirements.txt || true
+    (pip3 install --no-cache-dir -r ComfyUI-Inspyrenet-Rembg/requirements.txt || true) && \
+    pip3 install --no-cache-dir flet
 
 RUN echo "Installing Advanced Redux Control..." && \
     git clone https://github.com/kaibioinfo/ComfyUI_AdvancedRefluxControl.git && \
