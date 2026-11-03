@@ -79,6 +79,18 @@ docker compose exec comfyui bash -c '
     done
 '
 
+# albumentationsx (comfyui_controlnet_aux) and albumentations (pulled by
+# AdvancedLivePortrait) install into the same albumentations/ package, so
+# whichever installs last leaves a mixed tree that breaks insightface imports
+# (KeyError: numpy.uint32). Reinstall albumentationsx's files over the top.
+echo "→ Repairing albumentations package..."
+docker compose exec comfyui bash -c '
+    version=$(pip3 show albumentationsx 2>/dev/null | sed -n "s/^Version: //p")
+    if [ -n "$version" ]; then
+        pip3 install --no-cache-dir --force-reinstall --no-deps "albumentationsx==$version"
+    fi
+'
+
 # Re-apply core requirements last — custom node requirements can downgrade
 # packages ComfyUI core depends on (e.g. aiortc pulling av below 17).
 echo "→ Re-applying ComfyUI core requirements..."
