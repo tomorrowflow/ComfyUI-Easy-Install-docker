@@ -190,6 +190,12 @@ RUN echo "Installing Tiled Diffusion & VAE..." && \
     git clone https://github.com/shiimizu/ComfyUI-TiledDiffusion.git && \
     pip3 install --no-cache-dir -r ComfyUI-TiledDiffusion/requirements.txt || true
 
+RUN echo "Installing VAE Utils..." && \
+    git clone https://github.com/spacepxl/ComfyUI-VAE-Utils.git && \
+    if [ -f ComfyUI-VAE-Utils/requirements.txt ]; then \
+        pip3 install --no-cache-dir -r ComfyUI-VAE-Utils/requirements.txt || true; \
+    fi
+
 # Audio and Voice (existing)
 RUN echo "Installing Kokoro..." && \
     git clone https://github.com/stavsap/comfyui-kokoro.git && \
